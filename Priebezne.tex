@@ -1,0 +1,487 @@
+\documentclass[]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+
+
+\pagenumbering{arabic}
+\setcounter{page}{520}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\thepage}
+
+
+\begin{document}
+\title {\textbf{Leveraging Microblogs for Resource Ranking}}
+\author{Tomáš Majer and Marián Šimko } 
+\date {\small  {{\fontfamily{pcr}\selectfont Faculty of Informatics and Information Technologies, Slovak University of
+Technology, Ilkovičova 3, 842 16, Bratislava 4}}}
+\maketitle 
+
+
+
+\begin{center} \parbox{350pt}{\textbf {Abstract.} In order to compute page rankings, search algorithms primarily
+utilize information related to page content and link structure.
+Microblog as a phenomenon of today provides additional, potentially
+relevant, information – short messages often containing hypertext links
+to web resources. Such source is particularly valuable when considering
+a temporal aspect of information, which is being published every second.
+In this paper we present a method for resource ranking based on Twitter
+data structure processing. We apply various graph algorithms leveraging
+the notion of a node centrality in order to deduce microblog-based resource
+ranking. Our method ranks a microblog user based on his followers
+count with respect to a number of (re)posts and reflects it into resource
+ranking. The evaluation of the method showed that micro-based resource
+ranking a) can not be substituted by a common form of an explicit user
+rating, and b) has the great potential for search improvement.
+
+\vspace{5mm} \textbf {Keywords:} microblog, Twitter, resource ranking, web search.
+}
+\end{center}
+\section{Introduction}
+
+Nowadays, people benefit from the Internet and its most important service –
+the Web, which no longer consists only of static pages that people browse and
+search information in. User generated content has become more important than
+ever, what caused that a new medium for publishing short posts has emerged –
+microblog.
+
+Microblog is a lightweight form of traditional blog, where users publish only
+brief reports. This phenomenon has become popular mainly thanks to microblog
+Twitter. Therefore, the most common name for a user post is “tweet”. Microblog
+introduced a completely new form of communication. Users became able to share
+their actual feelings, experiences or opinions. Their posts are often related (and
+explicitly linked) to entities, which typically represent personalities, products or
+events. By aggregating different posts on various topics coming from a plethora
+of users and various platforms, microblog became a valuable source of data.
+
+It is possible to monitor current users’ opinions all around the world on microblog.
+Different world events can be tracked [4] such as elections, an introduction
+of a new product to the market, or revolutions. Typically it is a very current
+and extensive user content. Such content can be processed and utilized in order
+to improve access to information, e.g. by improving search. Currently the searchtakes into consideration criteria, where the most important are the content and
+links structure. There are also other areas such as product review or rating,
+where ranking can be utilized for filtering and sorting. However, those can be
+subsequently (and unfairly) amended by owners of e-shops. Thinking of Twitter
+as of a separate service, it contains un-moderated user data, which typically are
+not as biased and are more objective.
+
+In this paper we propose a method for leveraging microblogs for ranking
+resources (typically web pages). The method is based on Twitter graph analysis
+that results into resource ranking computation. The method is domain
+independent as it processes a graph representation abstracting of the content
+itself.
+
+The rest of the paper is structured as follows. Section 2 summarizes work
+related to microblogs and resource ranking. In section 3 we introduce a novel
+ranking measure called TweetRank. The evaluation and a dataset acquired for
+experiments are described in section 4. In section 5 we conclude our work.
+
+\section{Related work}
+There are many areas where microblog mining is beneficial. By textual processing
+of user posts we can gather specific keywords for a particular user [22], or use
+text classification methods to classify posts and users to specific topics [15]. It is
+possible to use methods and techniques of opinion mining to find user opinions
+[13] such as polarity of tweet.
+
+Much work has been done in the area of microblog search and microblog
+posts ranking [12,20]. Also the well known search engines like Google include
+tweets in their search results, based on full text search. Twitter itself contains
+a custom search engine allowing to search effectively through full text or tags.
+Twitter can be used to find relevant recent resources over the Web and to identify
+new and current trends in the world [5]. However, little is known about
+how Twitter posts influence the relevancy of resources contained in the posts
+and how this information can be utilized outside microblog. To our best knowledge,
+we are not aware of any method directly using microblog posts for deriving
+resource ranking and improving search in resources contained within those
+posts.
+
+Viewing Twitter as a huge network, it is natural to apply graph algorithms to
+analyze its structure. General graph ranking algorithms such as PageRank, HITS
+or NodeRanking can be applied to a graph representing microblog structure.
+PageRank identifies nodes that have the greatest relevance in the graph. It can
+be used to rank users by analyzing relationships [3]. NodeRanking also builds
+on the random surfer model and, in addition to PageRank, considers weights of
+links and the damping factor is not a constant but a node variable [14].
+
+Some ranking algorithms have been already adopted for microblogs. Twitter-
+Rank is based on PageRank [21]. Besides link structure, it considers topical similarity
+between users.TunkRank is basic ranking method for social networks, which
+are based on microblog principles [7]. It is directly correlated with an expected number of readers of a twitterer and inversely correlated with the number of users
+he follows. TunkRank algorithm can be used to identify influential users.
+
+\section{Microblog-Based Resource Ranking}
+Twitter is a service combining elements of both social networking and microblogging
+with certain specifics [8].While user profiles in social networks are connected
+bi-directionally, connections on microblog have only one-way orientation. User
+may follow other users in order to track their posts, but it does not necessarily
+mean that also reverse links exist, i.e., a followed user may choose not to follow
+ones that follow him. Twitter data analysis revealed that 80.5  of users
+is followed by 80  of their followers [21]. It was also showed that posts that
+users publish mostly depend on the number of users who follow them [8]. In
+contrast with traditional blogs, post comments cannot be assigned directly to a
+post. However, a new post linking to existing posts can be created, referred to
+as retweet. Users have the option to setup visibility for each post and restrict
+the “audience” of his tweets.
+
+Twitter is mostly used by users who actively use the web. It is therefore
+natural that a 22  of their tweets contain links to websites [2]. Due to the
+limited length of the contributions many of the services that shorten the web
+address are used, called URL-shortening services.
+
+The aforementioned characteristics can be used to construct a graph representation
+(see Fig. 1). Twitter graph contains three types of entities: users, tweets
+and resources. There are some tweets on Twitter, which are not connected to resources
+(typically web pages). The edges between users represent a unidirectional
+followership relation. Users are also connected with tweets they post. Tweets can
+be linked to users, another tweets and pages. Relations between tweets represent
+a re-tweet of a “parent” tweet.
+
+\subsection {TweetRank Computation}
+We believe the structure of microblog posts (represented by the graph) can be
+leveraged to determine ranking of resources referenced in microblog tweets.
+
+We propose a method for computing a resource rank, which we call Tweet-
+Rank. Basically, TweetRank is derived from tweet topology. The method is based
+on the existing graph analysis algorithms, while extending them with microblog
+specific features. The principle of the method lies in user ranking estimation and
+propagating such rank via graph relationships into web resources.
+
+In order to obtain resource ranking, we first compute user ranking based on
+modified TunkRank algorithm [6]. In contrast with TunkRank, we do not use
+static constant transition probability, but calculate dynamic coefficient for each
+user based on a number of his followers and tweets. For a user rank calculation
+we proposed the following equation:
+
+where UserRank(u) represents rank of a user u, followers(u) represents set of
+followers of user u and tweets(u) is set of tweets of user u.
+
+After computing a rank for each user, we use the UserRank to rank user
+tweets. Users with higher UserRank post tweets that are more important and, as
+a result, resources they share in those tweets are more relevant. The computation
+is iterative: UserRank is based on UserRank of all user followers. The more
+high-ranked followers a user has, the higher UserRank of this user is. In the
+beginning we assign same UserRank value to every user. In order to obtain
+final UserRank, we perform more UserRank computations until changes in
+user ranks do not exceed a specified (very low) threshold.
+
+For calculating a relevance of a tweet, we use the following computation:
+where TR(t) = TweetRelevance(t) is relevance of tweet t, Author(t) is author
+of tweet t. TweetRelevance represents relative rank of every tweet. It is based
+on UserRank which is adjusted according to the number of tweets of the author.
+
+After obtaining a rank for each tweet, we compute ranks of tweets, which
+link to resources, and derive resource rankings. When a tweet is re-tweeted, we
+increase a rank for a resource, as we explained earlier. Finally, TweetRank for
+a resource r is defined as an aggregation of ranks of all tweets that point to the
+resource r:
+where TweetRank(r) is TweetRank of a resource r, tweetsURL is set of tweets
+containing URL and retweets(t) is set of retweets of tweet t.
+
+For example, consider graph on Fig 1. Assuming user rankings UserRank(U1)
+=6, UserRank(U2)=2, UserRank(U3) = 10 we calculate TweetRank of resource
+R4 as follows: TweetRank(R4) = TR(T 5)+TR(T 5)TR(T6)+TR(T 6) = 2/3+
+2/3  10/2 + 10/2 = 8.9 (normalisation omitted). Similarly, TweetRank(R2) =
+5.6. The higher user ranking reflects into the higher ranking of a resource.
+The proposedmethod is a novel graph analysis method for computing rankings
+for microblog-based networks such as Twitter. For computing resource ranks it
+considers microblog specific concepts: unidirectional relation of followership and
+ability to re-tweet already tweeted post.
+
+\section {Evaluation}
+In order to evaluate the proposed method, we conducted two experiments. We
+collected Twitter dataset with tweets containing links and users relations. In
+the first experiment we rank YouTube videos and compare results based on
+TweetRank and user rank from YouTube.
+
+In the second experiment we evaluate our ranking method by incorporating
+it in searching. We present an approach where resources are sorted based on
+combination of fulltext search with microblog-based rating.
+
+\subsection {Dataset}
+We collected and joined two datasets to be used in experiments. First, we prepared
+a dataset of Twitter data by using 140kit service1. The dataset contains
+tweets and user profiles from 18th to 24th September 2009. There are 1,997,446
+tweets and 367,824 user profiles in the dataset. User profiles contain basic user
+data such as the count of his followers or the count of his total tweets. Dataset
+contains tweets in 6 different languages. 85 % of tweets are in English. To calculate
+ratings of users it is necessary to create connections between the users
+(for the calculation of user rank we need to know user rank of all of his followers).
+However, there were no such relations between users in obtained dataset.
+In order to calculate the ratings of users, Twitter API can be used directly for
+downloading a list of followers for a particular user. Unfortunately, this process
+is slow and Twitter limits the number of requests (350 per hour). Therefore,
+we used additional dataset, which contains information about user relations
+[10]. The dataset contains only links between users based on followers relationship
+and was created for three months from early June 2009 until the end of
+September 2009. This dataset contains users, who are part of the first dataset.
+The dataset contains 1,468,365,182 connections between 40,103,281 users. The
+dataset together with a full description can be downloaded from the website of
+the work2.
+
+There are 1,150,168 unique web links in the dataset. By using our method for
+resource ranking, we computed TweetRank for each resource determined by a link in the dataset. The distribution of the number of resources having particular
+TweetRank value is depicted in Fig. 2. It follows a power-law distribution.
+
+Further analysis of the dataset revealed that as much as 3  of links points
+to YouTube videos. YouTube videos also contain explicit rating given by users.
+In the first experiment we assess to what extent TweetRank relates with rating
+coming from the YouTube site.
+
+\subsection {Comparison with YouTube User Rank}
+
+In addition to watching a video on YouTube, users can also comment the video,
+they respond to comments of others and they vote. A vote can be positive or
+negative. For the purpose of the experiment we downloaded the user votes of 605
+videos.We transformed each vote into a rating calculated as a difference between
+positive and negative votes and normalized it according to TweetRank rankings.
+After that, we compared user rating to TweetRank ranking. We assumed that
+the ranking of videos using TweetRank will be similar to that of the votes on
+YouTube, as both ratings come from the crowd. However, we did not find a
+correlation between both rankings (see Fig. 3).
+
+The performed experiment showed that the evaluation of video-based ratings
+of users on YouTube is not correlated with the TweetRank (correlation coefficient
+r = 0.02). Although both approaches are basically based on rating of users,
+results differ. We see the main difference in results in unequal length of ranking
+time period. Videos on YouTube are available from the moment of their publication
+until the author decides to remove the video (which occurs very rarely).
+Long period YouTube rating is based on continuous rating through years, while
+TweetRank ranks are computed based on user posts collected during a period
+in September 2009 as described earlier. As we were not able to asses TweetRank
+rankings, we decided to compare the rankings with user rankings in the period
+closer to that from dataset in terms of both time distance and time length.
+
+We created an application for collecting user ratings by enabling them to see
+video and enabling them to enter a rank. The application offered to visitors 5 YouTube videos coming from the acquired dataset. The visitors were instructed
+to rate the videos on a scale from 1 to 5, where 1 stood for best and 5 for
+the worst rate. Users were given simple guidelines for evaluating videos: they
+should rate videos according to how they like them. There were no other criteria
+suggested they should consider. 70 different users participated in the experiment.
+They were non-technically oriented, ordinary web users and thus, in the
+most cases, also users of YouTube. We collected 680 responses together. The
+participants were approached through social networks Facebook and microblog
+Twitter.
+
+Based on user voting, we created two comparisons. We sorted videos based
+on average video rating computed according the following formula:
+where AV R(v) represents video rating computed as an average rating from a set
+of all video ratings H(v) of video v.
+The results of voting showed that videos got rather lower user rank values in
+general (see Table 1). When compared to the TweetRank results (Fig. 2), we
+see similar characteristics: in both cases many videos got low rates and only a
+few videos were assigned high rates. The user voting results were compared with
+TweetRank rankings. We computed the Kendall rank correlation coefficient τ in
+order to measure the association between both results.We obtained τ = -0.12519
+(the resulting value is negative because user rank evaluation method has been
+reversed). We also calculated the correlation coefficient r = 0.387.
+
+As each user had to rate five videos at once in the created application, he
+created own subjective ordering of the videos. Average difference between two
+adjacent videos in ordering by TweetRank is 0.0025. We also considered a deviation
+of rating in order to observe the change of two orderings (5-tuplets)
+match ratio. One ordering was based on user ranks and the other was based on
+Tweet-Rank (of the same videos). Deviation we define as a number, which we
+need to add to any TweetRank of video from 5-tuplet of videos in order to make
+changed TweetRank ordering match the 5-tuplet of videos composed by a user
+(Fig. 4).
+
+We see that finding a match in 5-tuple of user rating and TweetRank is
+difficult, because disagreement even in one place makes a comparison of orderings
+unsuccessful. Therefore, we also made another comparison, where we compared
+pairs of videos rather than 5-tuples. Similarly, we considered deviation in order
+to observe match ratio change (Fig. 5).
+
+The number of matched pairs is far higher than in the case when comparing
+5-tuples. Results show that there is more then 60 % of matches without considering
+deviation. Although a match ratio increases with a growing deviation, there is
+still much difference in agreement on orderings. We believe the explicit user rating
+lacks information (let us name it a context) that was induced from microblog.
+Microblog topology and relationships between all entities represents potentially  valuable information with regards to resources contained in blog posts. In order
+to further analyze obtained TweetRank rankings, we conducted an experiment
+related to search.
+
+\subsection {Sorting Search Results with TweetRank}
+In the experiment we used TweetRank for sorting search results. For the experiment
+we selected a part of the acquired dataset, which contained the randomly
+chosen 20,000 unique links to web resources. We indexed the resources using the
+SOLR search platform, which utilizes the core Apache Lucene search3. We extended
+document representation in order to incorporate calculated TweetRank,
+allowing us to sort search results by that rank.
+
+We proposed a hybrid approach for scoring computation combining internal
+ranking of SOLR search engine and TweetRank. As a result, search yields
+relevant documents (containing keywords from a query), which are sorted by
+TweetRank. Top-k documents are selected for presentation on a result page.
+
+We performed search with 20 randomly selected queries from well understood
+domain and manually evaluated the results. In order to demonstrate the results
+we have selected the keyword “apple”. Top-5 documents ranked by both Lucene
+original ranking and our approach utilizing TweetRank are shown in Table 2.We
+see fromthe example that the hybrid approach yields ordering, which prefers pages
+containing information about releasing new products. This kind of pages also
+ranked better with other queries we tried. Such behavior of rank originates in the
+nature of microblogs, where people often react to world or local news [5]. However,
+an important observation is that TweetRank-based ordering does not match
+a chronological rank of resources, i.e., publication time of information on a page.
+This leads us to conclusion that microblog-based ranking is especially useful when
+ranking a set of resource created within a specific time window, as it can not be replaced
+by temporal metatada of resources itself (creation time, change time, etc.).
+
+\section {Conclusions}
+The amount and nature of non-moderated user generated data emerging from
+microblog made it a potentially relevant and powerful data source that can be
+utilized for a variety of tasks. We believe that microblog data mining can improve
+approaches to domain modeling [16,17] and user modeling [1,9] potentially
+resulting in improved web search [18] or personalization [19,11]. It is important
+to note that microblog has certain restrictions, typically related to a limited
+size of a post or too specific language, which make microblog content processing
+more difficult. However, its popularity and spread result into increased number
+of posts every day. Nearly one quarter of posts contains URL to a web page [2].
+Increasing popularity of microblog also increases a number of microblog posts,
+which can be utilized for web search improvement. This makes microblog data
+extremely perspective. Not only for search improvement at the Web scale, but
+also in domains, where microblog emerges as a tool for instant discussions among
+communities of the specialized interest.
+
+In this paper we proposed a novel method for ranking resources referenced
+by microblog users in their posts. We particularly focused on microblog Twitter
+as it is both public and widely adopted. The principle of our approach lies in
+ranking microblog users and reflecting this rank in resources present in posts they
+publish. We utilize user ranking method TunkRank and extend it by considering
+additional microblog specific features like re-tweet, which improves user ranking
+computation in relation to posts a user publishes.
+
+In order to evaluate the proposed method for resources ranking we conducted
+two experiments. The first experiment we performed in the domain of user videos,
+where we compared ratings obtained from YouTube website with ranking obtained
+by our method. We found no correlations in both measures, what can be
+explained by temporal characteristics of underlying data: while microblog-based
+ratings were created based on one month sample of tweets, original user voting
+at YouTube site is present for years. Therefore, we created own application
+for collecting a different form of explicit user rating: relative ordering. The final
+user ratings were compared with the rank obtained from microblog Twitter using
+our method.We were able to see similarities between the measures, but there still was not sufficient number of agreements on rankings. We interpret this as a
+presence of additional potentially valuable information originating in microblog
+topology that can not be reflected in explicit user ratings.
+
+In the second experiment we used TweetRank for sorting search results. We
+combined document score computation by considering both a traditional statistical
+measure and TweetRank obtained by the method we proposed.By performing
+a set of search scenarios we assessed how the search results were reordered.
+Results showed that combined scoring computation prefers pages containing
+relatively new information. Such behavior of rank originates in the nature of
+microblogs, where people often react instantly. On the other hand, TweetRankbased
+ordering does not match a chronological rank of resources, i.e., resources
+in top-k search results are not new in terms of time only, but also sorted with
+regards of user attitudes expressed through microblog posts they write.
+
+In conclusion, we consider results of our research very promising and perspective.
+As a part of a future work we plan to conduct an experiment in a real world
+setting by incorporating users, who will assess obtained search results. Links in
+microblog posts are typically accompanied with user comments, which can be
+considered as resource annotations. Our long term goal is to extend our method
+with microblog posts content analysis in order to further improve obtained resource
+rankings and possibly combine it with semantic search approaches [18].
+
+\textbf{Acknowlegdments.} This work was partially supported by the grants VG1/
+0675/ 11/2011-2014, KEGA 028-025STU-4/2010, APVV-0208-10 and it is the
+partial result of the Research \& Development Operational Programme for the
+project Research of methods for acquisition, analysis and personalized conveying
+of information and knowledge, ITMS 26240220039, co-funded by the ERDF.
+
+\begin{thebibliography}{9}
+
+\bibitem{lamport94}
+  Barla, M., Bielikova, M.: OrdinaryWeb Pages as a Source for Metadata Acquisition
+for Open Corpus User Modeling. In: Proc. of WWW/Internet, pp. 227–233. IADIS
+Press (2010)
+\bibitem{b2}
+Boyd, D.M., Golder, S., Lotan, G.: Tweet, Tweet, Retweet: Conversational Aspects
+of Retweeting on Twitter. In: 43rd Hawaii International Conference on System
+Sciences, pp. 1–10. IEEE (2010)
+\bibitem{b3}
+Brin, S., Page, L.: The anatomy of a large-scale hypertextual web search engine.
+In: Proc. of the 7th Int. World Wide Web Conf. (1998)
+\bibitem{b4}
+Diakopoulos, N.A., Shamma, D.A.: Characterizing Debate Performance via
+Aggregated Twitter Sentiment. In: Proc. of the 28th Int. Conf. on Human Factors
+in Computing Systems, pp. 1195–1198. ACM (2010)
+\bibitem{b5}
+Dong, A.: Time is of the essence: improving recency ranking using Twitter data.
+In: Proc. of the 19th Int. Conf. on World Wide Web, pp. 331–340. ACM (2010)
+\bibitem{b6}
+Gayo-Avello, D., Brenes, D.J.: Overcoming Spammers in Twitter: A Tale of Five
+Algorithms. ir.ii.uam.es, pp. 41–52 (2010)
+\bibitem{b7}
+Gayo-Avello, D.: Nepotistic Relationships in Twitter and their Impact on Rank
+Prestige Algorithms. In: Arxiv preprint, arXiv:1004.0816 (2010)
+\bibitem{b8}
+Huberman, B.A., Romero, D.M.: Social networks that matter: Twitter under the
+microscope. In: Arxiv preprint, arXiv:0812.1045v1 (2009)
+\bibitem{b9}
+Kramár, T., Barla, M., Bieliková, M.: PeWeProxy: A Platform for Ubiquitous
+Personalization of the ”Wild” Web. In: UMAP 2011: Adjunct Proc. of the 19th
+Int. Conf. on User Modeling, Adaptation and Personalization. Demo., pp. 7–9
+(2011)
+\bibitem{b10}
+Kwak, H., Lee, C., Park, H.: What is Twitter, a Social Network or a News Media?
+In: Proceedings of the 19th International Conference on World Wide Web, Raleigh,
+pp. 591–600. ACM (2010)
+\bibitem{b11}
+Labaj, M.: Information Sciences and Technologies Bulletin of the ACM Slovakia.
+Special Section on Student Research in Informatics and Information Technologies
+3(2), 76–78 (2011)
+\bibitem{b12}
+Nagmoti, R., Teredesai, A., De Cock, M.: Ranking Approaches for Microblog
+Search. In: Proc. of the 2010 IEEE/WIC/ACM Int. Conf. on Web Intelligence
+and Intelligent Agent Technology, vol. 01, pp. 153–157. IEEE Computer Society,
+Washington, DC (2010)
+\bibitem{b13}
+Pandey, V., Iyer, C.: Sentiment analysis of microblogs (2009),
+http://www.stanford.edu/class/cs229/proj2009/PandeyIyer.pdf (accessed
+October 05, 2011)
+\bibitem{b14}
+Pujol, J.M., Sangesa, R., Delgado, J.: Extracting Reputation in Multi Agent Systems
+by Means of Social Network Topology. In: Proc. of the First Int.l Joint Conf.
+Autonomous Agents and Multiagent Systems, pp. 467–474 (2002)
+\bibitem{b15}
+Ramage, D., Dumais, S., Liebling, D.: Characterizing Microblogs with Topic Models.
+In: Proc. of Int. AAAI Conf. on Weblogs and Social Media, pp. 130–137. AAAI
+Press (2010)
+\bibitem{b16}
+Simko, J., Tvarožek, M., Bieliková, M.: Little Search Game: Term Network Acquisition
+via a Human Computation Game. In: HT 2011: Proc. of the 22nd ACM
+Conf. on Hypertext and Hypermedia, pp. 57–61. ACM, New York (2011)
+\bibitem{b17}
+Šimko, J.: Augmenting Human Computed Lightweight Semantics. Information Sciences
+and Technologies Bulletin of the ACM Slovakia, Special Section on Student
+Research in Informatics and Information Technologies 3(2), 116–118 (2011)
+\bibitem{b18}
+Šimko, M., Bieliková, M.: Improving Search Results with Lightweight Semantic
+Search. In: Grobelnik, M., Mika, P., Douc, T.T., Wang, H. (eds.) Proc. of the
+Workshop on Semantic Search, SemSearch 2009 at the 18th Int. World Wide Web
+Conference, WWW 2009, Madrid, Spain. CEUR, vol. 491, pp. 53–54 (2009)
+\bibitem{b19}
+Šimko, M., Barla, M., Bieliková, M.: ALEF: A Framework for AdaptiveWeb-Based
+Learning 2.0. In: Reynolds, N., Turcsányi-Szabó, M. (eds.) KCKS 2010. IFIP AICT,
+vol. 324, pp. 367–378. Springer, Heidelberg (2010)
+\bibitem{b20}
+Teevan, J., Ramage, D., Morris, M.R.: TwitterSearch: a comparison of microblog
+search and web search. In: Proc. of the Fourth ACM Int. Conf. on Web Search and
+Data Mining, WSDM 2011, pp. 35–44. ACM, New York (2011)
+\bibitem{b21}
+Weng, J., Lim, E.P., Jiang, J., He, Q.: TwitterRank: Finding Topic-sensitive Influential
+Twitterers. In: Proc. of the Third ACM Int. Conf. on Web Search and Data
+Mining, pp. 261–270. ACM (2010)
+\bibitem{b22}
+Wu, W., Zhang, B., Ostendorf, M.: Automatic generation of personalized annotation
+tags for Twitter users. In: Proc. HLT 2010 Human Language Technologies:
+The 2010 Annual Conf. of the North American Chapter of the Association for
+Computational Linguistics, pp. 689–692. ACM (2010)
+
+\end{thebibliography}
+\end{document}
